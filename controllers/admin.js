@@ -22,6 +22,9 @@ exports.postAddProduct = (req, res, next) => {
   res.redirect('/')
 }
 
+/**
+ * Controller for rendering the edit product page. 
+ */
 exports.getEditProduct = (req, res, next) => {
   Product.findById(req.params.productId, product => {
     if (!product) res.redirect('/')
@@ -35,6 +38,13 @@ exports.getEditProduct = (req, res, next) => {
   })
 }
 
+/**
+ * Controller for handling editing a product. 
+ * 
+ * Redirects to main page, if product ID is invalid. 
+ * 
+ * Redirects to admin products page, if successful.
+ */
 exports.postEditProduct = (req, res, next) => {
   Product.findById(req.body.productId, product => {
     if (!product) res.redirect('/')

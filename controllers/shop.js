@@ -30,6 +30,9 @@ exports.getProducts = (req, res, next) => {
   })
 }
 
+/**
+ * Controller for rendering the view for a specific product's details. 
+ */
 exports.getProduct = (req, res, next) => {
   const productId = req.params.productId
 
@@ -52,6 +55,11 @@ exports.getCart = (req, res, next) => {
   })
 }
 
+/**
+ * Controller for adding a product to the user's cart. 
+ * 
+ * Redirects to the cart page.
+ */
 exports.postCart = (req, res, next) => {
   const productId = req.body.productId 
   Cart.addProduct(productId)

@@ -32,6 +32,11 @@ router.get('/products', adminController.getProducts)
  */
 router.get('/edit-product/:productId', adminController.getEditProduct)
 
+/**
+ * POST method for /admin/edit-product route. 
+ * 
+ * Handles post request for an admin editing a product.
+ */
 router.post('/edit-product', adminController.postEditProduct)
 
 module.exports = router

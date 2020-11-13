@@ -23,20 +23,19 @@ module.exports = class Product {
   /**
    * Save method for saving this product.
    * 
-   * Either add a new product, or updating an existing product.
+   * Either add a new product, or update an existing product.
    */
   save() {
     if (this.id) {
       const existingProductIndex = products.findIndex(p => p.id === this.id)
       const updatedProducts = [...products]
-      products[existingProductIndex] = this
+      updatedProducts[existingProductIndex] = this
+      products = updatedProducts
     } else {
       this.id = Math.random().toString()
       products.push(this)
     }
   }
-
-
 
   /**
    * Static method for fetching all products.
@@ -47,6 +46,12 @@ module.exports = class Product {
     cb(products)
   }
 
+  /**
+   * Find a product by it's ID. 
+   * 
+   * @param {String} id ID of the product to find
+   * @param {Function} cb callback function 
+   */
   static findById(id, cb) {
     const product = products.find(p => p.id === id)
     cb(product)

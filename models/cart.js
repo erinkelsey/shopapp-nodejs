@@ -2,7 +2,16 @@ const Product = require('./product')
 
 const cart = { products: [], totalPrice: 0 }
 
+/**
+ * Model for holding products the user has added to their
+ * cart, and the current total price of the cart. 
+ */
 module.exports = class Cart {
+  /**
+   * Add a product to this cart. 
+   * 
+   * @param {String} id ID of the product to add to this cart
+   */
   static addProduct(id) {
     Product.findById(id, product => {
       const existingProductIndex = cart.products.findIndex(p => p.id === id)
@@ -18,8 +27,6 @@ module.exports = class Cart {
       }
   
       cart.totalPrice += +product.price
-  
-      console.log(cart);
     })
   }
 }
