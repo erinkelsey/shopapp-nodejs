@@ -49,9 +49,20 @@ exports.getProduct = (req, res, next) => {
  * Controller for rendering a user's shopping car view.
  */
 exports.getCart = (req, res, next) => {
-  res.render('shop/cart', {
-    path: '/cart',
-    pageTitle: 'Your Cart'
+  Cart.getCart(cart => {
+    Product.fetchAll(products => {
+      const cartProducts = []
+      for (product of products) {
+        const cartProductData = cart.products.find(p => p.id === product.id)
+        if (cartProductData)
+          cartProducts.push({ productData: product, quantity: cartProductData.quantity})
+      }
+      res.render('shop/cart', {
+        path: '/cart',
+        pageTitle: 'Your Cart',
+        products: cartProducts
+      })
+    })
   })
 }
 
@@ -61,9 +72,22 @@ exports.getCart = (req, res, next) => {
  * Redirects to the cart page.
  */
 exports.postCart = (req, res, next) => {
-  const productId = req.body.productId 
-  Cart.addProduct(productId)
-  res.redirect('/cart')
+  Product.findById(req.body.productId, product => {
+    Cart.addProduct(req.body.productId, product.price)
+    res.redirect('/cart')
+  })
+}
+
+/**
+ * Controller for deleting a product from the user's cart. 
+ * 
+ * Redirects to the cart page.
+ */
+exports.postCartDeleteProduct = (req, res, next) => {
+  Product.findById(req.body.productId, product => {
+    Cart.deleteProductById(req.body.productId, product.price)
+    res.redirect('/cart')
+  })
 }
 
 /**

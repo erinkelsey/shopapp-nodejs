@@ -39,4 +39,11 @@ router.get('/edit-product/:productId', adminController.getEditProduct)
  */
 router.post('/edit-product', adminController.postEditProduct)
 
+/**
+ * POST method for /admin/delete-product route. 
+ * 
+ * Handles post request for an admin deleting a product.
+ */
+router.post('/delete-product', adminController.postDeleteProduct)
+
 module.exports = router

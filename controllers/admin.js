@@ -66,3 +66,18 @@ exports.getProducts = (req, res, next) => {
     })
   })
 }
+
+/**
+ * Controller for handling the deletion of a single product. 
+ * 
+ * Deletes product from any carts it is currently in, as well.
+ */
+exports.postDeleteProduct = (req, res, next) => {
+  Product.findById(req.body.productId, product => {
+    if (!product) res.redirect('/')
+
+    Product.deleteById(req.body.productId, product.price)
+    res.redirect('/admin/products')
+  })
+
+}

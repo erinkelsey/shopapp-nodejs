@@ -1,4 +1,6 @@
-const products = []
+const Cart = require('./cart')
+
+let products = []
 
 /**
  * Model for a single product item. 
@@ -33,7 +35,8 @@ module.exports = class Product {
       products = updatedProducts
     } else {
       this.id = Math.random().toString()
-      products.push(this)
+      const updatedProducts = [ ...products, this ]
+      products = updatedProducts
     }
   }
 
@@ -55,6 +58,20 @@ module.exports = class Product {
   static findById(id, cb) {
     const product = products.find(p => p.id === id)
     cb(product)
+  }
+
+  /**
+   * Deletes a specific product. 
+   * 
+   * Deletes product from any current carts, as well.
+   * 
+   * @param {String} id ID of product to delete
+   * @param {String} productPrice price of product to delete
+   */
+  static deleteById(id, productPrice) {
+    const updatedProducts = products.filter(p => p.id !== id)
+    products = updatedProducts
+    Cart.deleteProductById(id, productPrice)
   }
 
 }

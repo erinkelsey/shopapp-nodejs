@@ -33,7 +33,19 @@ router.get('/products/:productId', shopController.getProduct)
  */
 router.get('/cart', shopController.getCart)
 
+/**
+ * POST method for /cart route. 
+ * 
+ * Handles adding a product to the user's cart. 
+ */
 router.post('/cart', shopController.postCart)
+
+/**
+ * POST method for /cart-delete-item route. 
+ * 
+ * Handles deleting a specific item from the user's cart.
+ */
+router.post('/cart-delete-item', shopController.postCartDeleteProduct)
 
 /**
  * GET method for /checkout route. 
