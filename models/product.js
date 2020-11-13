@@ -23,6 +23,7 @@ module.exports = class Product {
    * Save method for saving this product.
    */
   save() {
+    this.id = Math.random().toString()
     products.push(this)
   }
 
@@ -33,6 +34,11 @@ module.exports = class Product {
    */
   static fetchAll(cb) {
     cb(products)
+  }
+
+  static findById(id, cb) {
+    const product = products.find(p => p.id === id)
+    cb(product)
   }
 
 }

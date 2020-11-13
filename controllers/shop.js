@@ -1,4 +1,5 @@
 const Product = require('../models/product')
+const Cart = require('../models/cart')
 
 /**
  * Controller for rendering the shop view. 
@@ -29,6 +30,18 @@ exports.getProducts = (req, res, next) => {
   })
 }
 
+exports.getProduct = (req, res, next) => {
+  const productId = req.params.productId
+
+  Product.findById(productId, product => {
+    res.render('shop/product-detail', {
+      pageTitle: product.title,
+      path: '/product-detail',
+      product: product
+    })
+  })
+}
+
 /**
  * Controller for rendering a user's shopping car view.
  */
@@ -37,6 +50,12 @@ exports.getCart = (req, res, next) => {
     path: '/cart',
     pageTitle: 'Your Cart'
   })
+}
+
+exports.postCart = (req, res, next) => {
+  const productId = req.body.productId 
+  Cart.addProduct(productId)
+  res.redirect('/cart')
 }
 
 /**

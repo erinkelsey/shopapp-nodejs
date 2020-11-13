@@ -19,11 +19,21 @@ router.get('/', shopController.getIndex)
 router.get('/products', shopController.getProducts)
 
 /**
+ * GET method for /products/:productId route. 
+ * 
+ * Renders the page for showing the details for a specific
+ * product, based on the productId parameter.
+ */
+router.get('/products/:productId', shopController.getProduct)
+
+/**
  * GET method for /cart route.
  * 
  * Renders a user's cart page.
  */
 router.get('/cart', shopController.getCart)
+
+router.post('/cart', shopController.postCart)
 
 /**
  * GET method for /checkout route. 
