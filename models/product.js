@@ -7,10 +7,16 @@ module.exports = class Product {
   /**
    * Constructor for a product item.
    * 
-   * @param {String} title the title of the product
+   * @param {String} title the title of this product
+   * @param {String} imageUrl url for the image of this product
+   * @param {String} description description of this product
+   * @param {Double} price price of this product
    */
-  constructor(title) {
+  constructor(title, imageUrl, description, price) {
     this.title = title
+    this.imageUrl = imageUrl
+    this.description = description
+    this.price = price
   }
 
   /**
@@ -25,8 +31,8 @@ module.exports = class Product {
    * 
    * Called by: Product.fetchAll()
    */
-  static fetchAll() {
-    return products
+  static fetchAll(cb) {
+    cb(products)
   }
 
 }
