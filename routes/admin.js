@@ -12,6 +12,13 @@ const router = express.Router()
 router.get('/add-product', adminController.getAddProduct)
 
 /**
+ * POST method for /admin/add-product route. 
+ * 
+ * Handles post request for an admin adding a new product.
+ */
+router.post('/add-product', adminController.postAddProduct)
+
+/**
  * GET method for /admin/products route.
  * 
  * Renders the admin page showing all of the products.
@@ -19,10 +26,12 @@ router.get('/add-product', adminController.getAddProduct)
 router.get('/products', adminController.getProducts)
 
 /**
- * POST method for /admin/add-product route. 
+ * GET method for /admin/edit-product/:productId route.
  * 
- * Handles post request for an admin adding a new product.
+ * Renders the admin page for editing a product.
  */
-router.post('/add-product', adminController.postAddProduct)
+router.get('/edit-product/:productId', adminController.getEditProduct)
+
+router.post('/edit-product', adminController.postEditProduct)
 
 module.exports = router

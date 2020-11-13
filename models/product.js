@@ -12,7 +12,8 @@ module.exports = class Product {
    * @param {String} description description of this product
    * @param {Double} price price of this product
    */
-  constructor(title, imageUrl, description, price) {
+  constructor(id, title, imageUrl, description, price) {
+    this.id = id
     this.title = title
     this.imageUrl = imageUrl
     this.description = description
@@ -21,11 +22,21 @@ module.exports = class Product {
 
   /**
    * Save method for saving this product.
+   * 
+   * Either add a new product, or updating an existing product.
    */
   save() {
-    this.id = Math.random().toString()
-    products.push(this)
+    if (this.id) {
+      const existingProductIndex = products.findIndex(p => p.id === this.id)
+      const updatedProducts = [...products]
+      products[existingProductIndex] = this
+    } else {
+      this.id = Math.random().toString()
+      products.push(this)
+    }
   }
+
+
 
   /**
    * Static method for fetching all products.

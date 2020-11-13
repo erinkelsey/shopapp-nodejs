@@ -4,9 +4,10 @@ const Product = require('../models/product')
  * Controller for rendering the admin add-product view.
  */
 exports.getAddProduct = (req, res, next) => {
-  res.render('admin/add-product', { 
+  res.render('admin/edit-product', { 
     pageTitle: 'Add Product',
-    path: '/admin/add-product'
+    path: '/admin/add-product',
+    editing: false
   })
 }
 
@@ -16,9 +17,31 @@ exports.getAddProduct = (req, res, next) => {
  * Redirects to main route when complete.
  */
 exports.postAddProduct = (req, res, next) => {
-  const product = new Product(req.body.title, req.body.imageUrl, req.body.description, req.body.price)
+  const product = new Product(null, req.body.title, req.body.imageUrl, req.body.description, req.body.price)
   product.save()
   res.redirect('/')
+}
+
+exports.getEditProduct = (req, res, next) => {
+  Product.findById(req.params.productId, product => {
+    if (!product) res.redirect('/')
+
+    res.render('admin/edit-product', { 
+      pageTitle: 'Edit Product',
+      path: '/admin/edit-product',
+      editing: req.query.edit,
+      product: product
+    })
+  })
+}
+
+exports.postEditProduct = (req, res, next) => {
+  Product.findById(req.body.productId, product => {
+    if (!product) res.redirect('/')
+    const updatedProduct = new Product(req.body.productId, req.body.title, req.body.imageUrl, req.body.description, req.body.price)
+    updatedProduct.save()
+    res.redirect('/admin/products')
+  })
 }
 
 /**
