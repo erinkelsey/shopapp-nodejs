@@ -1,6 +1,6 @@
-const Cart = require('./cart')
+const db = require('../util/database')
 
-let products = []
+const Cart = require('./cart')
 
 /**
  * Model for a single product item. 
@@ -28,36 +28,43 @@ module.exports = class Product {
    * Either add a new product, or update an existing product.
    */
   save() {
-    if (this.id) {
-      const existingProductIndex = products.findIndex(p => p.id === this.id)
-      const updatedProducts = [...products]
-      updatedProducts[existingProductIndex] = this
-      products = updatedProducts
-    } else {
-      this.id = Math.random().toString()
-      const updatedProducts = [ ...products, this ]
-      products = updatedProducts
-    }
+    return db.execute(
+      'insert into products (title, price, imageUrl, description) values (?, ?, ?, ?)', 
+      [this.title, this.price, this.imageUrl, this.description]
+    )
+
+    // if (this.id) {
+    //   const existingProductIndex = products.findIndex(p => p.id === this.id)
+    //   const updatedProducts = [...products]
+    //   updatedProducts[existingProductIndex] = this
+    //   products = updatedProducts
+    // } else {
+    //   this.id = Math.random().toString()
+    //   const updatedProducts = [ ...products, this ]
+    //   products = updatedProducts
+    // }
   }
 
   /**
    * Static method for fetching all products.
    * 
+   * Returns a promise with the results from the DB.
+   * 
    * Called by: Product.fetchAll()
    */
-  static fetchAll(cb) {
-    cb(products)
+  static fetchAll() {
+    return db.execute('select * from products')
   }
 
   /**
    * Find a product by it's ID. 
    * 
    * @param {String} id ID of the product to find
-   * @param {Function} cb callback function 
+   *
+   * @returns {Promise} the results from the DB as a promise
    */
-  static findById(id, cb) {
-    const product = products.find(p => p.id === id)
-    cb(product)
+  static findById(id) {
+    return db.execute('select * from products where id = ?', [id])
   }
 
   /**

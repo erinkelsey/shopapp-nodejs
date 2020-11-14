@@ -7,13 +7,15 @@ const Cart = require('../models/cart')
  * The main index view for the app.
  */
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll(products => {
-    res.render('shop/index', {
-      products: products,
-      pageTitle: 'Shop',
-      path: '/'
+  Product.fetchAll()
+    .then(([rows, fieldData]) => {
+      res.render('shop/index', {
+        products: rows,
+        pageTitle: 'Shop',
+        path: '/'
+      })
     })
-  })
+    .catch(err => console.log(err))
 }
 
 /**
@@ -21,28 +23,30 @@ exports.getIndex = (req, res, next) => {
  * products of the shop. 
  */
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
-    res.render('shop/product-list', {
-      products: products,
-      pageTitle: 'All Products',
-      path: '/products'
+  Product.fetchAll()
+    .then(([rows, fieldData]) => {
+      res.render('shop/product-list', {
+        products: rows,
+        pageTitle: 'All Products',
+        path: '/products'
+      })
     })
-  })
+    .catch(err => console.log(err))
 }
 
 /**
  * Controller for rendering the view for a specific product's details. 
  */
 exports.getProduct = (req, res, next) => {
-  const productId = req.params.productId
-
-  Product.findById(productId, product => {
-    res.render('shop/product-detail', {
-      pageTitle: product.title,
-      path: '/product-detail',
-      product: product
+  Product.findById(req.params.productId)
+    .then(([product]) => {
+      res.render('shop/product-detail', {
+        pageTitle: product.title,
+        path: '/product-detail',
+        product: product[0]
+      })
     })
-  })
+    .catch(err => console.log(err))
 }
 
 /**

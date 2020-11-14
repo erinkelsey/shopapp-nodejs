@@ -18,8 +18,12 @@ exports.getAddProduct = (req, res, next) => {
  */
 exports.postAddProduct = (req, res, next) => {
   const product = new Product(null, req.body.title, req.body.imageUrl, req.body.description, req.body.price)
-  product.save()
-  res.redirect('/')
+  product
+    .save()
+    .then(() => {
+      res.redirect('/')
+    })
+    .catch(err => console.log(err))
 }
 
 /**
@@ -58,13 +62,15 @@ exports.postEditProduct = (req, res, next) => {
  * Controller for rendering the admin products view. 
  */
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
-    res.render('admin/products', {
-      products: products,
-      pageTitle: 'Admin Products',
-      path: '/admin/products'
+  Product.fetchAll()
+    .then(([rows, fieldData]) => {
+      res.render('admin/products', {
+        products: rows,
+        pageTitle: 'Admin Products',
+        path: '/admin/products'
+      })
     })
-  })
+    .catch(err => console.log(err))
 }
 
 /**
