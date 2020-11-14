@@ -55,6 +55,13 @@ router.post('/cart-delete-item', shopController.postCartDeleteProduct)
 router.get('/checkout', shopController.getCheckout)
 
 /**
+ * POST method for /create-order route. 
+ * 
+ * Handles ordering cart items. 
+ */
+router.post('/create-order', shopController.postOrder)
+
+/**
  * GET method for /orders route. 
  * 
  * Renders a user's orders page.

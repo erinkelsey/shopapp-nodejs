@@ -1,5 +1,4 @@
 const Product = require('../models/product')
-const Cart = require('../models/cart')
 
 /**
  * Controller for rendering the shop view. 
@@ -53,21 +52,18 @@ exports.getProduct = (req, res, next) => {
  * Controller for rendering a user's shopping car view.
  */
 exports.getCart = (req, res, next) => {
-  Cart.getCart(cart => {
-    Product.fetchAll(products => {
-      const cartProducts = []
-      for (product of products) {
-        const cartProductData = cart.products.find(p => p.id === product.id)
-        if (cartProductData)
-          cartProducts.push({ productData: product, quantity: cartProductData.quantity})
-      }
+  req.user.getCart()
+    .then(cart => {
+      return cart.getProducts()
+    })
+    .then(products => {
       res.render('shop/cart', {
         path: '/cart',
         pageTitle: 'Your Cart',
-        products: cartProducts
+        products: products
       })
     })
-  })
+    .catch(err => console.log(err))
 }
 
 /**
@@ -76,10 +72,32 @@ exports.getCart = (req, res, next) => {
  * Redirects to the cart page.
  */
 exports.postCart = (req, res, next) => {
-  Product.findById(req.body.productId, product => {
-    Cart.addProduct(req.body.productId, product.price)
-    res.redirect('/cart')
-  })
+  let fetchedCart
+  let newQuantity = 1
+  req.user.getCart()
+    .then(cart => {
+      fetchedCart = cart
+      return cart.getProducts({ where: { id: req.body.productId } })
+    })
+    .then(products => {
+      if (products.length > 0) {
+        const quantity = products[0].cartItem.quantity
+        newQuantity  = quantity + 1
+        return products[0]
+      }
+      return Product.findByPk(req.body.productId)
+        .then(product => product)
+        .catch(err => console.log(err))
+    })
+    .then(product => {
+      return fetchedCart.addProduct(product, { 
+        through: { quantity: newQuantity } 
+      })
+    })
+    .then(() => {
+      res.redirect('/cart')
+    })
+    .catch(err => console.log(err))
 }
 
 /**
@@ -88,10 +106,13 @@ exports.postCart = (req, res, next) => {
  * Redirects to the cart page.
  */
 exports.postCartDeleteProduct = (req, res, next) => {
-  Product.findById(req.body.productId, product => {
-    Cart.deleteProductById(req.body.productId, product.price)
-    res.redirect('/cart')
-  })
+  req.user.getCart()
+    .then(cart => cart.getProducts({ where: { id: req.body.productId } }))
+    .then(products => products[0].cartItem.destroy())
+    .then(() => {
+      res.redirect('/cart')
+    })
+    .catch(err => console.log(err))
 }
 
 /**
@@ -105,11 +126,49 @@ exports.getCheckout = (req, res, next) => {
 }
 
 /**
+ * Controller for handling ordering cart items. 
+ * 
+ * Redirects to orders page when complete. 
+ */
+exports.postOrder = (req, res, next) => {
+  let fetchedCart
+  req.user.getCart()
+    .then(cart => {
+      fetchedCart = cart
+      return cart.getProducts()
+    })
+    .then(products => {
+      return req.user.createOrder()
+        .then(order => {
+          order.addProducts(products.map(product => {
+            product.orderItem = { quantity: product.cartItem.quantity }
+            return product
+          }))
+        })
+        .catch(err => console.log(err))
+    })
+    .then(() => {
+      return fetchedCart.setProducts(null)
+    })
+    .then(() => {
+      res.redirect('/orders')
+    })
+    .catch(err => console.log(err))
+}
+
+/**
  * Controller for rendering a user's orders view.
  */
 exports.getOrders = (req, res, next) => {
-  res.render('shop/orders', {
-    path: '/orders',
-    pageTitle: 'Your Orders'
-  })
+  req.user.getOrders({ include: ['products'] })
+    .then(orders => {
+      console.log(orders);
+      res.render('shop/orders', {
+        path: '/orders',
+        pageTitle: 'Your Orders',
+        orders: orders
+      })
+    })
+    .catch(err => console.log(err))
+  
 }

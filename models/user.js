@@ -3,15 +3,17 @@ const Sequelize = require('sequelize').Sequelize
 const sequelize = require('../util/database')
 
 /**
- * Sequelize model for a single cart.
+ * Sequelize model for a single user.
  */
-const Cart = sequelize.define('cart', {
+const User = sequelize.define('user', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
-  }
+  },
+  name: Sequelize.STRING,
+  email: Sequelize.STRING
 }) 
 
-module.exports = Cart 
+module.exports = User 

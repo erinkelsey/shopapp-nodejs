@@ -17,11 +17,19 @@ exports.getAddProduct = (req, res, next) => {
  * Redirects to main route when complete.
  */
 exports.postAddProduct = (req, res, next) => {
-  Product.create({
+  // Product.create({
+  //   title: req.body.title,
+  //   price: req.body.price,
+  //   imageUrl: req.body.imageUrl,
+  //   description: req.body.description,
+  //   userId: req.user.id
+  // })
+  // OR
+  req.user.createProduct({
     title: req.body.title,
     price: req.body.price,
     imageUrl: req.body.imageUrl,
-    description: req.body.description
+    description: req.body.description,
   })
     .then(result => {
       console.log(result)
@@ -34,7 +42,9 @@ exports.postAddProduct = (req, res, next) => {
  * Controller for rendering the edit product page. 
  */
 exports.getEditProduct = (req, res, next) => {
-  Product.findByPk(req.params.productId)
+  // Product.findByPk(req.params.productId)
+  // OR
+  req.user.getProducts({ where: { id: req.params.productId } })
     .then(product => {
       if (!product) res.redirect('/')
 
@@ -42,7 +52,7 @@ exports.getEditProduct = (req, res, next) => {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: req.query.edit,
-        product: product
+        product: product[0]
       })
     })
   .catch(err => console.log(err))
@@ -75,7 +85,7 @@ exports.postEditProduct = (req, res, next) => {
  * Controller for rendering the admin products view. 
  */
 exports.getProducts = (req, res, next) => {
-  Product.findAll()
+  req.user.getProducts()
     .then(products => {
       res.render('admin/products', {
         products: products,
