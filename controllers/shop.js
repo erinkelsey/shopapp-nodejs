@@ -7,10 +7,10 @@ const Cart = require('../models/cart')
  * The main index view for the app.
  */
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
-    .then(([rows, fieldData]) => {
+  Product.findAll()
+    .then(products => {
       res.render('shop/index', {
-        products: rows,
+        products: products,
         pageTitle: 'Shop',
         path: '/'
       })
@@ -23,10 +23,10 @@ exports.getIndex = (req, res, next) => {
  * products of the shop. 
  */
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
-    .then(([rows, fieldData]) => {
+  Product.findAll()
+    .then(products => {
       res.render('shop/product-list', {
-        products: rows,
+        products: products,
         pageTitle: 'All Products',
         path: '/products'
       })
@@ -38,12 +38,12 @@ exports.getProducts = (req, res, next) => {
  * Controller for rendering the view for a specific product's details. 
  */
 exports.getProduct = (req, res, next) => {
-  Product.findById(req.params.productId)
-    .then(([product]) => {
+  Product.findByPk(req.params.productId)
+    .then(product => {
       res.render('shop/product-detail', {
         pageTitle: product.title,
         path: '/product-detail',
-        product: product[0]
+        product: product
       })
     })
     .catch(err => console.log(err))

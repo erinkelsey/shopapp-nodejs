@@ -17,10 +17,14 @@ exports.getAddProduct = (req, res, next) => {
  * Redirects to main route when complete.
  */
 exports.postAddProduct = (req, res, next) => {
-  const product = new Product(null, req.body.title, req.body.imageUrl, req.body.description, req.body.price)
-  product
-    .save()
-    .then(() => {
+  Product.create({
+    title: req.body.title,
+    price: req.body.price,
+    imageUrl: req.body.imageUrl,
+    description: req.body.description
+  })
+    .then(result => {
+      console.log(result)
       res.redirect('/')
     })
     .catch(err => console.log(err))
@@ -30,16 +34,18 @@ exports.postAddProduct = (req, res, next) => {
  * Controller for rendering the edit product page. 
  */
 exports.getEditProduct = (req, res, next) => {
-  Product.findById(req.params.productId, product => {
-    if (!product) res.redirect('/')
+  Product.findByPk(req.params.productId)
+    .then(product => {
+      if (!product) res.redirect('/')
 
-    res.render('admin/edit-product', { 
-      pageTitle: 'Edit Product',
-      path: '/admin/edit-product',
-      editing: req.query.edit,
-      product: product
+      res.render('admin/edit-product', { 
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
+        editing: req.query.edit,
+        product: product
+      })
     })
-  })
+  .catch(err => console.log(err))
 }
 
 /**
@@ -50,22 +56,29 @@ exports.getEditProduct = (req, res, next) => {
  * Redirects to admin products page, if successful.
  */
 exports.postEditProduct = (req, res, next) => {
-  Product.findById(req.body.productId, product => {
-    if (!product) res.redirect('/')
-    const updatedProduct = new Product(req.body.productId, req.body.title, req.body.imageUrl, req.body.description, req.body.price)
-    updatedProduct.save()
-    res.redirect('/admin/products')
-  })
+  Product.findByPk(req.body.productId)
+    .then(product => {
+      product.title = req.body.title
+      product.price = req.body.price 
+      product.description = req.body.description 
+      product.imageUrl = req.body.imageUrl
+      return product.save()
+    })
+    .then(result => {
+      console.log('UPDATED PRODUCT')
+      res.redirect('/admin/products')
+    })
+    .catch(err => console.log(err))
 }
 
 /**
  * Controller for rendering the admin products view. 
  */
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
-    .then(([rows, fieldData]) => {
+  Product.findAll()
+    .then(products => {
       res.render('admin/products', {
-        products: rows,
+        products: products,
         pageTitle: 'Admin Products',
         path: '/admin/products'
       })
@@ -79,11 +92,12 @@ exports.getProducts = (req, res, next) => {
  * Deletes product from any carts it is currently in, as well.
  */
 exports.postDeleteProduct = (req, res, next) => {
-  Product.findById(req.body.productId, product => {
-    if (!product) res.redirect('/')
-
-    Product.deleteById(req.body.productId, product.price)
-    res.redirect('/admin/products')
-  })
-
+  Product.findByPk(req.body.productId)
+    .then(product => {
+      return product.destroy()
+    })
+    .then(result => {
+      res.redirect('/admin/products')
+    })
+    .catch(err => console.log(err))
 }
