@@ -47,12 +47,12 @@ router.post('/cart', shopController.postCart)
  */
 router.post('/cart-delete-item', shopController.postCartDeleteProduct)
 
-/**
- * GET method for /checkout route. 
- * 
- * Renders a user's checkout page.
- */
-router.get('/checkout', shopController.getCheckout)
+// /**
+//  * GET method for /checkout route. 
+//  * 
+//  * Renders a user's checkout page.
+//  */
+// router.get('/checkout', shopController.getCheckout)
 
 /**
  * POST method for /create-order route. 

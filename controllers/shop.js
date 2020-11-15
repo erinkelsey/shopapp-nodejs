@@ -1,4 +1,5 @@
 const Product = require('../models/product')
+const Order = require('../models/order')
 
 /**
  * Controller for rendering the shop view. 
@@ -6,7 +7,8 @@ const Product = require('../models/product')
  * The main index view for the app.
  */
 exports.getIndex = (req, res, next) => {
-  Product.findAll()
+  Product
+    .find()
     .then(products => {
       res.render('shop/index', {
         products: products,
@@ -22,7 +24,8 @@ exports.getIndex = (req, res, next) => {
  * products of the shop. 
  */
 exports.getProducts = (req, res, next) => {
-  Product.findAll()
+  Product
+    .find()
     .then(products => {
       res.render('shop/product-list', {
         products: products,
@@ -37,7 +40,8 @@ exports.getProducts = (req, res, next) => {
  * Controller for rendering the view for a specific product's details. 
  */
 exports.getProduct = (req, res, next) => {
-  Product.findByPk(req.params.productId)
+  Product
+    .findById(req.params.productId)
     .then(product => {
       res.render('shop/product-detail', {
         pageTitle: product.title,
@@ -52,15 +56,14 @@ exports.getProduct = (req, res, next) => {
  * Controller for rendering a user's shopping car view.
  */
 exports.getCart = (req, res, next) => {
-  req.user.getCart()
-    .then(cart => {
-      return cart.getProducts()
-    })
-    .then(products => {
+  req.user
+    .populate('cart.items.productId')
+    .execPopulate()
+    .then(user => {
       res.render('shop/cart', {
         path: '/cart',
         pageTitle: 'Your Cart',
-        products: products
+        products: user.cart.items
       })
     })
     .catch(err => console.log(err))
@@ -72,27 +75,10 @@ exports.getCart = (req, res, next) => {
  * Redirects to the cart page.
  */
 exports.postCart = (req, res, next) => {
-  let fetchedCart
-  let newQuantity = 1
-  req.user.getCart()
-    .then(cart => {
-      fetchedCart = cart
-      return cart.getProducts({ where: { id: req.body.productId } })
-    })
-    .then(products => {
-      if (products.length > 0) {
-        const quantity = products[0].cartItem.quantity
-        newQuantity  = quantity + 1
-        return products[0]
-      }
-      return Product.findByPk(req.body.productId)
-        .then(product => product)
-        .catch(err => console.log(err))
-    })
+  Product
+    .findById(req.body.productId)
     .then(product => {
-      return fetchedCart.addProduct(product, { 
-        through: { quantity: newQuantity } 
-      })
+      return req.user.addToCart(product)
     })
     .then(() => {
       res.redirect('/cart')
@@ -106,24 +92,22 @@ exports.postCart = (req, res, next) => {
  * Redirects to the cart page.
  */
 exports.postCartDeleteProduct = (req, res, next) => {
-  req.user.getCart()
-    .then(cart => cart.getProducts({ where: { id: req.body.productId } }))
-    .then(products => products[0].cartItem.destroy())
+  req.user.removeFromCart(req.body.productId)
     .then(() => {
       res.redirect('/cart')
     })
     .catch(err => console.log(err))
 }
 
-/**
- * Controller for rendering a user's checkout view.
- */
-exports.getCheckout = (req, res, next) => {
-  res.render('shop/checkout', {
-    path: '/checkout',
-    pageTitle: 'Checkout'
-  })
-}
+// /**
+//  * Controller for rendering a user's checkout view.
+//  */
+// exports.getCheckout = (req, res, next) => {
+//   res.render('shop/checkout', {
+//     path: '/checkout',
+//     pageTitle: 'Checkout'
+//   })
+// }
 
 /**
  * Controller for handling ordering cart items. 
@@ -131,24 +115,27 @@ exports.getCheckout = (req, res, next) => {
  * Redirects to orders page when complete. 
  */
 exports.postOrder = (req, res, next) => {
-  let fetchedCart
-  req.user.getCart()
-    .then(cart => {
-      fetchedCart = cart
-      return cart.getProducts()
-    })
-    .then(products => {
-      return req.user.createOrder()
-        .then(order => {
-          order.addProducts(products.map(product => {
-            product.orderItem = { quantity: product.cartItem.quantity }
-            return product
-          }))
-        })
-        .catch(err => console.log(err))
+  req.user
+    .populate('cart.items.productId')
+    .execPopulate()
+    .then(user => {
+      const products = user.cart.items.map(item => {
+        return { 
+          quantity: item.quantity,
+          product: {...item.productId._doc}
+        }
+      })
+      const order = new Order({
+        user: {
+          name: req.user.name,
+          userId: req.user // SAME as req.user._id
+        },
+        products: products
+      })
+      order.save()
     })
     .then(() => {
-      return fetchedCart.setProducts(null)
+      return req.user.clearCart()
     })
     .then(() => {
       res.redirect('/orders')
@@ -160,9 +147,9 @@ exports.postOrder = (req, res, next) => {
  * Controller for rendering a user's orders view.
  */
 exports.getOrders = (req, res, next) => {
-  req.user.getOrders({ include: ['products'] })
+  Order
+    .find({ 'user.userId': req.user._id })
     .then(orders => {
-      console.log(orders);
       res.render('shop/orders', {
         path: '/orders',
         pageTitle: 'Your Orders',
