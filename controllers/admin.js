@@ -78,7 +78,7 @@ exports.postEditProduct = (req, res, next) => {
  */
 exports.getProducts = (req, res, next) => {
   Product 
-    .find()
+    .find({ 'userId': req.user._id })
     // .select('title price -_id') // select only title, price and exclude id
     // .populate('userId') // populate related fields with full objects
     .then(products => {

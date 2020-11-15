@@ -1,6 +1,6 @@
 # Shop App
 
-An eCommerce app built with Node.js, Express, mongoDB, mongoose and Stripe.
+An eCommerce app built with Node.js, Express, mongoDB, mongoose, and Stripe. Uses bcryptjs for hashing and salting passwords, and connect-mongodb-session and express-session for managing user sessions. Uses csurf to create CSRF tokens, and prevent for CSRF Attacks. Uses connect-flash for sending messages on redirect responses.
 
 ## Install
 
