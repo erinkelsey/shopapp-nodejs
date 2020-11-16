@@ -53,7 +53,8 @@ exports.getEditProduct = (req, res, next) => {
 /**
  * Controller for handling editing a product. 
  * 
- * Redirects to main page, if product ID is invalid. 
+ * Redirects to main page, if product ID is invalid, or user was 
+ * not the one that added the product. 
  * 
  * Redirects to admin products page, if successful.
  */
@@ -61,20 +62,25 @@ exports.postEditProduct = (req, res, next) => {
   Product 
     .findById(req.body.productId)
     .then(product => {
+      if (product.userId.toString() !== req.user._id.toString()) 
+        return res.redirect('/')
+
       product.title = req.body.title
       product.price = req.body.price 
       product.description = req.body.description 
       product.imageUrl = req.body.imageUrl
-      return product.save()
-    })
-    .then(() => {
-      res.redirect('/admin/products')
+
+      return product.save().then(() => {
+        res.redirect('/admin/products')
+      })
     })
     .catch(err => console.log(err))
 }
 
 /**
  * Controller for rendering the admin products view. 
+ * 
+ * Only returns products that the user has added. 
  */
 exports.getProducts = (req, res, next) => {
   Product 
@@ -98,7 +104,8 @@ exports.getProducts = (req, res, next) => {
  */
 exports.postDeleteProduct = (req, res, next) => {
   Product 
-    .findByIdAndRemove(req.body.productId)
+    // .findByIdAndRemove(req.body.productId)
+    .deleteOne( { _id: req.body.productId, userId: req.user._id } )
     .then(() => {
       res.redirect('/admin/products')
     })

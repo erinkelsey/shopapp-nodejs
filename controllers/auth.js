@@ -1,3 +1,5 @@
+const crypto = require('crypto')
+
 const bcrypt = require('bcryptjs')
 const nodemailer = require('nodemailer')
 const sendgridTransport = require('nodemailer-sendgrid-transport')
@@ -72,6 +74,10 @@ exports.getSignUp = (req, res,  next) => {
 
 /**
  * Controller for handling signing up a user. 
+ * 
+ * Sends the user an email, confirming that successful sign up. 
+ * 
+ * Hashes the user's password with bcrypt. 
  */
 exports.postSignUp = (req, res, next) => {
   User
@@ -102,4 +108,111 @@ exports.postSignUp = (req, res, next) => {
       })
     })
     .catch(err => console.log(err))
+}
+
+/**
+ * Controller for rendering reset password view.
+ */
+exports.getReset = (req, res, next) => {
+  res.render('auth/reset', {
+    path: '/reset',
+    pageTitle: 'Reset Password',
+    errorMessage: req.flash('error')
+  })
+}
+
+/**
+ * Controller for handling the creation of a token, and sending
+ * the user an email with the token, so that they can reset
+ * their password. 
+ * 
+ * Only sends the reset email, if the user has entered a valid email. 
+ */
+exports.postReset = (req, res, next) => {
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) {
+      console.log(err)
+      return res.redirect('/reset')
+    }
+
+    const token = buffer.toString('hex')
+    User
+      .findOne( { email: req.body.email } )
+      .then(user => {
+        if (!user) {
+          req.flash('error', 'No account with that email found.')
+          return res.redirect('/reset')
+        }
+
+        user.resetToken = token 
+        user.resetTokenExpiration = Date.now() + 3600000
+        user
+          .save()
+          .then(() => {
+            res.redirect('/')
+            return transporter.sendMail({
+              to: req.body.email,
+              from: process.env.SENDGRID_FROM,
+              subject: 'Password reset!',
+              html: `
+                <p>You requested a password reset.</p>
+                <p>Click this <a href="${process.env.HOST_URL}/reset/${token}">link</a> to set a new password.</p>
+              `
+            })
+          })
+      })
+      .catch(err => console.log(err))
+  })
+}
+
+/**
+ * Controller for rendering password reset page. 
+ * 
+ * NOTE: add error message if token/user not found
+ */
+exports.getNewPassword = (req, res, next) => {
+  User
+    .findOne( { resetToken: req.params.token, resetTokenExpiration: { $gt: Date.now() } } )
+    .then(user => {
+      res.render('auth/new-password', {
+        path: '/new-password',
+        pageTitle: 'New Password',
+        errorMessage: req.flash('error'),
+        userId: user._id.toString(),
+        passwordToken: req.params.token
+      })
+    })
+    .catch(err => console.log(err))
+}
+
+/**
+ * Controller for handling password resets. 
+ * 
+ * Password is only reset, if user has a valid token. 
+ * 
+ * Redirects to login page. 
+ * 
+ * NOTE: add error message if token/user not found
+ */
+exports.postNewPassword = (req, res, next) => {
+  let resetUser
+  User.findOne({ 
+    resetToken: req.body.passwordToken, 
+    resetTokenExpiration: { $gt: Date.now() } ,
+    _id: req.body.userId
+  })
+  .then(user => { 
+    resetUser = user
+    return bcrypt.hash(req.body.password, 12)
+  })
+  .then(hashedPassword => {
+    resetUser.password = hashedPassword
+    resetUser.resetToken = undefined
+    resetUser.resetTokenExpiration = undefined 
+    return resetUser.save()
+  })
+  .then(() => {
+    res.redirect('/login')
+  })
+  .catch(err => console.log(err))
 }

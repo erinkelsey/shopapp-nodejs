@@ -39,4 +39,32 @@ router.get('/signup', authController.getSignUp)
  */
 router.post('/signup', authController.postSignUp)
 
+/**
+ * GET method for /reset route. 
+ * 
+ * Renders reset password page.
+ */
+router.get('/reset', authController.getReset)
+
+/**
+ * POST method for /reset route. 
+ * 
+ * Handles resetting a user's password. 
+ */
+router.post('/reset', authController.postReset)
+
+/**
+ * GET method for /reset/:token route. 
+ * 
+ * Renders new password page.
+ */
+router.get('/reset/:token', authController.getNewPassword)
+
+/**
+ * POST method for /new-password route. 
+ * 
+ * Resets a user's password. 
+ */
+router.post('/new-password', authController.postNewPassword)
+
 module.exports = router;
