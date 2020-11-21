@@ -81,4 +81,14 @@ router.post('/create-order', isAuth, shopController.postOrder)
  */
 router.get('/orders', isAuth, shopController.getOrders)
 
+/**
+ * GET method for /orders/:orderId route. 
+ * 
+ * Returns a PDF invoice for the specific order. 
+ * 
+ * User must be logged in to access this route, and it must be
+ * one of this user's orders. 
+ */
+router.get('/orders/:orderId', isAuth, shopController.getInvoice)
+
 module.exports = router

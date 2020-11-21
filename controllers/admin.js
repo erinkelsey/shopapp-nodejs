@@ -1,5 +1,7 @@
 const { validationResult } = require('express-validator')
 
+const fileHelper = require('../util/file')
+
 const Product = require('../models/product')
 
 /**
@@ -22,19 +24,19 @@ exports.getAddProduct = (req, res, next) => {
  * Checks for validation errors, if errors, redirect to add product page. 
  */
 exports.postAddProduct = (req, res, next) => {
-  // Validation Errors
+  // Validation and File Upload Errors
   const errors = validationResult(req)
-  if (!errors.isEmpty()) {
+  const image = req.file
+  if (!errors.isEmpty() || !image) {
     return res.status(422).render('admin/edit-product', {
       pageTitle: 'Add Product',
       path: '/admin/add-product',
       editing: false,
-      errorMessage: errors.array()[0].msg,
+      errorMessage: !errors.isEmpty() ? errors.array()[0].msg : 'Unable to upload file. Please select an image of type PNG, JPG, or JPEG.',
       hasError: true,
       product: { 
         title: req.body.title,
         price: req.body.price,
-        imageUrl: req.body.imageUrl,
         description: req.body.description
       }
     })
@@ -44,7 +46,7 @@ exports.postAddProduct = (req, res, next) => {
   const product = new Product({
     title: req.body.title,
     price: req.body.price,
-    imageUrl: req.body.imageUrl,
+    imageUrl: image.path,
     description: req.body.description,
     userId: req.user
   })
@@ -54,6 +56,7 @@ exports.postAddProduct = (req, res, next) => {
       res.redirect('/admin/products')
     })
     .catch(err => {
+      console.log(err)
       // res.redirect('/500')
       const error = new Error(err)
       error.httpStatusCode = 500
@@ -94,6 +97,10 @@ exports.getEditProduct = (req, res, next) => {
  * Redirects to admin products page, if successful.
  * 
  * Checks for validation errors, if errors, redirect to add product page.
+ * 
+ * If there is no image file sent, then keeps the original one.
+ * 
+ * If there is an image, original image is deleted from server. 
  */
 exports.postEditProduct = (req, res, next) => {
   // Validation Errors
@@ -108,7 +115,6 @@ exports.postEditProduct = (req, res, next) => {
       product: { 
         title: req.body.title,
         price: req.body.price,
-        imageUrl: req.body.imageUrl,
         description: req.body.description,
         _id: req.body.productId
       }
@@ -121,10 +127,16 @@ exports.postEditProduct = (req, res, next) => {
       if (product.userId.toString() !== req.user._id.toString()) 
         return res.redirect('/')
 
+      const image = req.file 
+
       product.title = req.body.title
       product.price = req.body.price 
       product.description = req.body.description 
-      product.imageUrl = req.body.imageUrl
+
+      if (image) {
+        fileHelper.deleteFile(product.imageUrl)
+        product.imageUrl = image.path
+      }
 
       return product.save().then(() => {
         res.redirect('/admin/products')
@@ -165,14 +177,19 @@ exports.getProducts = (req, res, next) => {
  * Controller for handling the deletion of a single product. 
  * 
  * Deletes product from any carts it is currently in, as well.
+ * 
+ * Deletes the file from the server, as well. 
  */
 exports.postDeleteProduct = (req, res, next) => {
   Product 
-    // .findByIdAndRemove(req.body.productId)
-    .deleteOne( { _id: req.body.productId, userId: req.user._id } )
-    .then(() => {
-      res.redirect('/admin/products')
+    .findByIdAndRemove(req.body.productId)
+    .then(product => {
+      if (!product) return next(new Error('Product not found.'))
+      fileHelper.deleteFile(product.imageUrl)
+
+      return Product.deleteOne( { _id: req.body.productId, userId: req.user._id } )
     })
+    .then(() => res.redirect('/admin/products'))
     .catch(err => {
       const error = new Error(err)
       error.httpStatusCode = 500

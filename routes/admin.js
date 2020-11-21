@@ -24,7 +24,6 @@ router.get('/add-product', isAuth, adminController.getAddProduct)
  * 
  * Validates user input:
  *  - title -> alphanumeric, min lenght of 3
- *  - imageUrl -> must be URL
  *  - title -> float
  *  - description -> min length of 5, max lenght of 400
  */
@@ -37,9 +36,9 @@ router.post(
       .isLength({ min: 3 })
       .withMessage('Title must have only letters and numbers, and have a minimum of three characters.')
       .trim(),
-    body('imageUrl')
-      .isURL()
-      .withMessage('Image URL must be a valid URL.'),
+    // body('imageUrl')
+    //   .isURL()
+    //   .withMessage('Image URL must be a valid URL.'),
     body('price')
       .isFloat()
       .withMessage('Price must be a valid float.'),
@@ -79,7 +78,6 @@ router.get(
  * 
  * Validates user input:
  *  - title -> alphanumeric, min lenght of 3
- *  - imageUrl -> must be URL
  *  - title -> float
  *  - description -> min length of 5, max lenght of 400
  */
@@ -91,9 +89,9 @@ router.post(
       .isLength({ min: 3 })
       .withMessage('Title must have only letters and numbers, and have a minimum of three characters.')
       .trim(),
-    body('imageUrl')
-      .isURL()
-      .withMessage('Image URL must be a valid URL.'),
+    // body('imageUrl')
+    //   .isURL()
+    //   .withMessage('Image URL must be a valid URL.'),
     body('price')
       .isFloat()
       .withMessage('Price must be a valid float.'),

@@ -2,12 +2,16 @@
 
 An eCommerce app built with Node.js, Express, mongoDB, mongoose, and Stripe.
 
+Hosted example:
+
 ### Other Features
 
 - Uses bcryptjs for hashing and salting passwords, and connect-mongodb-session and express-session for managing user sessions. - Uses csurf to create CSRF tokens, and prevent for CSRF Attacks.
 - Uses connect-flash for sending messages on redirect responses.
-- Users SendGrid, nodemailer, nodemailer-sendgrid-transport for sending emails.
-- Users express-validator for server-side validation
+- Uses SendGrid, nodemailer, nodemailer-sendgrid-transport for sending emails.
+- Uses express-validator for server-side validation
+- Uses multer for handling file uploads
+- Uses pdfkit for creating PDF invoices for orders
 
 ## Install
 

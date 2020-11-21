@@ -9,6 +9,7 @@ const session = require('express-session')
 const MongoDBStore = require('connect-mongodb-session')(session)
 const csrf = require('csurf')
 const flash = require('connect-flash')
+const multer = require('multer')
 
 const errorController = require('./controllers/error')
 const User = require('./models/user')
@@ -20,6 +21,31 @@ const store = new MongoDBStore({
 })
 const csrfProtection = csrf()
 
+/**
+ * Set up file storage for product images. 
+ * 
+ * They are stored in an images folder. 
+ */
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images')
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + '_' + file.originalname)
+  }
+})
+
+/**
+ * File filter for uploaded files. 
+ * 
+ * Only save image files with .png/.jpg/.jpeg file types. 
+ */
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg')
+    cb(null, true)
+  cb(null, false)
+}
+
 app.set('view engine', 'ejs')
 app.set('views', 'views')
 
@@ -28,14 +54,18 @@ const shopRoutes = require('./routes/shop')
 const authRoutes = require('./routes/auth')
 
 /**
- * Middleware for parsing the body of requests
+ * Middleware for parsing the body of requests. 
+ * 
+ * Both urlencoded, and form-data. 
  */
 app.use(bodyParser.urlencoded({extended: false}))
+app.use(multer({ storage: fileStorage, fileFilter }).single('image')) // image is field name
 
 /**
- * Middleware for static files
+ * Middleware for static files. 
  */
 app.use(express.static(path.join(__dirname, 'public')))
+app.use('/images', express.static(path.join(__dirname, 'images')))
 
 /**
  * Middleware for handling sessions. 
