@@ -3,6 +3,7 @@ const crypto = require('crypto')
 const bcrypt = require('bcryptjs')
 const nodemailer = require('nodemailer')
 const sendgridTransport = require('nodemailer-sendgrid-transport')
+const { validationResult } = require('express-validator')
 
 const User = require("../models/user")
 
@@ -25,8 +26,20 @@ exports.getLogin = (req, res, next) => {
 
 /**
  * Controller for handling login authentication. 
+ * 
+ * Checks for validation errors. If errors, redirect to login page. 
  */
 exports.postLogin = (req, res, next) => {
+  // Validation Errors
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/login', {
+      path: '/login',
+      pageTitle: 'Login',
+      errorMessage: errors.array()[0].msg
+    })
+  }
+
   User 
     .findOne( { email: req.body.email } )
     .then(user => {
@@ -75,29 +88,36 @@ exports.getSignUp = (req, res,  next) => {
 /**
  * Controller for handling signing up a user. 
  * 
+ * Checks for validation errors, if there are any, redirect back to page
+ * and show the users the errors. 
+ * 
  * Sends the user an email, confirming that successful sign up. 
  * 
  * Hashes the user's password with bcrypt. 
  */
 exports.postSignUp = (req, res, next) => {
-  User
-    .findOne({ email: req.body.email })
-    .then(userDoc => {
-      if (userDoc) {
-        req.flash('error', 'Email already exists.')
-        return res.redirect('/signup')
-      }
-      bcrypt
-        .hash(req.body.password, 12)
-        .then(hashedPassword => {
-          const user = new User({
-            email: req.body.email,
-            password: hashedPassword,
-            cart: { items: [] }
-          })
-          return user.save()
-        })
+  // Validation Errors
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/signup', {
+      path: '/signup',
+      pageTitle: 'Signup',
+      errorMessage: errors.array()[0].msg
     })
+  }
+  // Process Signup
+  // Hash password
+  bcrypt
+    .hash(req.body.password, 12)
+    .then(hashedPassword => {
+      const user = new User({
+        email: req.body.email,
+        password: hashedPassword,
+        cart: { items: [] }
+      })
+      return user.save()
+    })
+    // Send signup confirmation email
     .then(() => {
       res.redirect('/login')
       return transporter.sendMail({
