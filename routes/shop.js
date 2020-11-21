@@ -54,23 +54,32 @@ router.post('/cart', isAuth, shopController.postCart)
  */
 router.post('/cart-delete-item', isAuth, shopController.postCartDeleteProduct)
 
-// /**
-//  * GET method for /checkout route. 
-//  * 
-//  * Renders a user's checkout page.
-//  * 
-//  * User must be logged in to access this route.
-//  */
-// router.get('/checkout', isAuth, shopController.getCheckout)
-
 /**
- * POST method for /create-order route. 
+ * GET method for /checkout route. 
  * 
- * Handles ordering cart items. 
+ * Renders a user's checkout page.
  * 
  * User must be logged in to access this route.
  */
-router.post('/create-order', isAuth, shopController.postOrder)
+router.get('/checkout', isAuth, shopController.getCheckout)
+
+/**
+ * GET method for /checkout/success route. 
+ * 
+ * Route for successful checkout. 
+ * 
+ * Called after successful payment through Stripe. 
+ */
+router.get('/checkout/success', shopController.getCheckoutSuccess)
+
+/**
+ * GET method for /checkout/cancel route. 
+ * 
+ * Redirects to the checkout page. 
+ * 
+ * Called after unsuccessful payment through Stripe or user cancels checkout.
+ */
+router.get('/checkout/cancel', shopController.getCheckout)
 
 /**
  * GET method for /orders route. 

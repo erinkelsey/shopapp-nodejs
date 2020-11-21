@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const stripe = require('stripe')(process.env.STRIPE_PRIVATE_KEY)
 
 const PDFDocument = require('pdfkit')
 
@@ -165,22 +166,64 @@ exports.postCartDeleteProduct = (req, res, next) => {
     })
 }
 
-// /**
-//  * Controller for rendering a user's checkout view.
-//  */
-// exports.getCheckout = (req, res, next) => {
-//   res.render('shop/checkout', {
-//     path: '/checkout',
-//     pageTitle: 'Checkout'
-//   })
-// }
+/**
+ * Controller for rendering a user's checkout view.
+ */
+exports.getCheckout = (req, res, next) => {
+  let products 
+  let total = 0
+  req.user
+    .populate('cart.items.productId')
+    .execPopulate()
+    .then(user => {
+      products = user.cart.items
+      total = 0
+      products.forEach(p => {
+        total += p.quantity * p.productId.price
+      })
+
+      return stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: products.map(p => {
+          return {
+            name: p.productId.title,
+            description: p.productId.description,
+            amount: p.productId.price * 100,
+            currency: 'usd',
+            quantity: p.quantity
+          }
+        }),
+        success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
+        cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel',
+      })
+    })
+    .then(session => {
+      res.render('shop/checkout', {
+        path: '/checkout',
+        pageTitle: 'Checkout',
+        products: products,
+        totalSum: total,
+        sessionId: session.id,
+        stripePublicKey: process.env.STRIPE_PUBLIC_KEY
+      })
+    })
+    .catch(err => {
+      const error = new Error(err)
+      error.httpStatusCode = 500
+      return next(error)
+    })
+}
 
 /**
- * Controller for handling ordering cart items. 
+ * Controller for handling ordering cart items.
+ * 
+ * Called after successful payment through Stripe.  
  * 
  * Redirects to orders page when complete. 
+ * 
+ * Use Stripe webhooks, for production! Not rely on the success URL.
  */
-exports.postOrder = (req, res, next) => {
+exports.getCheckoutSuccess = (req, res, next) => {
   req.user
     .populate('cart.items.productId')
     .execPopulate()
@@ -268,7 +311,7 @@ exports.getInvoice = (req, res, next) => {
       })
   
       pdfDoc.text('---');
-      pdfDoc.fontSize(20).text("Total Price: $" + totalPrice)
+      pdfDoc.fontSize(20).text("Total Price: $" + totalPrice.toFixed(2))
     
       // send PDF
       pdfDoc.end()

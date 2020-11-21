@@ -12,6 +12,7 @@ Hosted example:
 - Uses express-validator for server-side validation
 - Uses multer for handling file uploads
 - Uses pdfkit for creating PDF invoices for orders
+- Uses Stripe for payments
 
 ## Install
 
@@ -29,6 +30,12 @@ Hosted example:
 - Create a sender with an email address you have access to, and confirm
 - Add the email address you used to .env, as described below
 
+### Stripe
+
+- Signup for a Stripe account: https://stripe.com
+- Go to Developers -> API Keys to get your test API Key
+- Copy your public and private keys, and add to the .env file, as described below
+
 ### Environment Variables
 
 Create a .env file in the main directory with the following environment variables:
@@ -37,6 +44,8 @@ Create a .env file in the main directory with the following environment variable
     SENDGRID_API_KEY=your_sendgrid_api_key
     SENDGRID_FROM=email_verified_sender_identity
     HOST_URL=http://localhost:3000
+    STRIPE_PRIVATE_KEY=your_private_stripe_key
+    STRIPE_PUBLIC_KEY=your_public_stripe_key
 
 ## Run
 
