@@ -27,6 +27,7 @@ exports.postAddProduct = (req, res, next) => {
   // Validation and File Upload Errors
   const errors = validationResult(req)
   const image = req.file
+  console.log(req.file)
   if (!errors.isEmpty() || !image) {
     return res.status(422).render('admin/edit-product', {
       pageTitle: 'Add Product',

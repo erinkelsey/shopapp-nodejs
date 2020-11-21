@@ -2,7 +2,7 @@
 
 An eCommerce app built with Node.js, Express, mongoDB, mongoose, and Stripe.
 
-Hosted example:
+Hosted example: https://shopapp-nodejs.herokuapp.com/
 
 ### Other Features
 
