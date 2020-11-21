@@ -105,12 +105,15 @@ router.post(
 )
 
 /**
- * POST method for /admin/delete-product route. 
+ * Async route for use with ajax on frontend. 
  * 
- * Handles post request for an admin deleting a product.
+ * DELETE method for /admin/delete-product route. 
+ * 
+ * Handles request for an admin deleting a product.
  * 
  * User must be logged in to access this route.
  */
-router.post('/delete-product', isAuth, adminController.postDeleteProduct)
+// router.post('/delete-product', isAuth, adminController.postDeleteProduct)
+router.delete('/product/:productId', isAuth, adminController.deleteProduct)
 
 module.exports = router
