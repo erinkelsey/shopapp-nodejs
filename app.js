@@ -31,6 +31,7 @@ const fileStorage = multer.diskStorage({
     cb(null, 'images')
   },
   filename: (req, file, cb) => {
+    console.log('gettin filename')
     cb(null, new Date().toISOString() + '_' + file.originalname)
   }
 })
@@ -52,6 +53,7 @@ app.set('views', 'views')
 const adminRoutes = require('./routes/admin')
 const shopRoutes = require('./routes/shop')
 const authRoutes = require('./routes/auth')
+const { log } = require("console")
 
 /**
  * Middleware for parsing the body of requests. 
