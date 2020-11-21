@@ -84,14 +84,33 @@ app.use((req, res, next) => {
   next()
 })
 
+/**
+ * Routes for app. 
+ */
 app.use('/admin', adminRoutes)
 app.use(shopRoutes)
 app.use(authRoutes)
 
+/**
+ * Route for 500 page. 
+ */
+app.get('/500', errorController.get500)
+
+/**
+ * If the routes aren't handled above, show 404 page. 
+ */
 app.use(errorController.get404)
 
 /**
- * Connect to MongoDB, and listen on port 3000
+ * Error handling middleware. Will be reached if an error
+ * is returned from another route. 
+ */
+app.use((error, req, res, next) => {
+  res.redirect('/500')
+})
+
+/**
+ * Connect to MongoDB, and listen on port 3000.
  */
 mongoose
   .connect(process.env.MONGODB_CONNECTION, {
