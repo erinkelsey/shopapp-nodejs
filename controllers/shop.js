@@ -291,13 +291,13 @@ exports.getInvoice = (req, res, next) => {
         return next(new Error('Unauthorized'))
 
       const invoiceName = 'invoice-' + req.params.orderId + '.pdf'
-      const invoicePath = path.join('data', 'invoices', invoiceName)
+      // const invoicePath = path.join('data', 'invoices', invoiceName)
     
       // create PDF
       const pdfDoc = new PDFDocument()
       res.setHeader('Content-Type', 'application/pdf')
       res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"')
-      pdfDoc.pipe(fs.createWriteStream(invoicePath))
+      // pdfDoc.pipe(fs.createWriteStream(invoicePath))
       pdfDoc.pipe(res)
     
       pdfDoc.fontSize(26).text('Invoice', { underline: true })

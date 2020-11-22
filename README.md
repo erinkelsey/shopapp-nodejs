@@ -36,6 +36,12 @@ Hosted example: https://shopapp-nodejs.herokuapp.com/
 - Go to Developers -> API Keys to get your test API Key
 - Copy your public and private keys, and add to the .env file, as described below
 
+#### To Test Transaction
+
+Card Number: 4242 4242 4242 4242
+Expiry: Any date in the future
+CVC: Any three numbers
+
 ### AWS S3
 
 - Create an S3 bucket that allows public files
