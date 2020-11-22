@@ -10,6 +10,8 @@ const MongoDBStore = require('connect-mongodb-session')(session)
 const csrf = require('csurf')
 const flash = require('connect-flash')
 const multer = require('multer')
+const aws = require('aws-sdk')
+const multerS3 = require('multer-s3')
 
 const errorController = require('./controllers/error')
 const User = require('./models/user')
@@ -26,12 +28,29 @@ const csrfProtection = csrf()
  * 
  * They are stored in an images folder. 
  */
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'images')
+// const fileStorage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'images')
+//   },
+//   filename: (req, file, cb) => {
+//     console.log('getting filename')
+//     cb(null, new Date().toISOString() + '_' + file.originalname)
+//   }
+// })
+
+/**
+ * Configure AWS SDK and S3, for uploading images. 
+ */
+aws.config.update({ region: process.env.AWS_REGION })
+const s3 = new aws.S3({apiVersion: '2006-03-01'})
+
+const s3Storage = multerS3({
+  s3: s3,
+  bucket: process.env.AWS_BUCKET_NAME,
+  metadata: (req, file, cb) => {
+    cb(null, { fieldName: file.fieldname });
   },
-  filename: (req, file, cb) => {
-    console.log('gettin filename')
+  key: (req, file, cb) => {
     cb(null, new Date().toISOString() + '_' + file.originalname)
   }
 })
@@ -53,7 +72,6 @@ app.set('views', 'views')
 const adminRoutes = require('./routes/admin')
 const shopRoutes = require('./routes/shop')
 const authRoutes = require('./routes/auth')
-const { log } = require("console")
 
 /**
  * Middleware for parsing the body of requests. 
@@ -61,13 +79,13 @@ const { log } = require("console")
  * Both urlencoded, and form-data. 
  */
 app.use(bodyParser.urlencoded({extended: false}))
-app.use(multer({ storage: fileStorage, fileFilter }).single('image')) // image is field name
+app.use(multer({ storage: s3Storage, fileFilter }).single('image')) // image is field name
 
 /**
  * Middleware for static files. 
  */
 app.use(express.static(path.join(__dirname, 'public')))
-app.use('/images', express.static(path.join(__dirname, 'images')))
+// app.use('/images', express.static(path.join(__dirname, 'images')))
 
 /**
  * Middleware for handling sessions. 

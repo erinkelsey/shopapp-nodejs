@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator')
 
-const fileHelper = require('../util/file')
+// const fileHelper = require('../util/file')
+const s3Helper = require('../util/s3')
 
 const Product = require('../models/product')
 
@@ -47,7 +48,8 @@ exports.postAddProduct = (req, res, next) => {
   const product = new Product({
     title: req.body.title,
     price: req.body.price,
-    imageUrl: image.path,
+    imageUrl: image.location,
+    imageKey: image.key,
     description: req.body.description,
     userId: req.user
   })
@@ -135,8 +137,10 @@ exports.postEditProduct = (req, res, next) => {
       product.description = req.body.description 
 
       if (image) {
-        fileHelper.deleteFile(product.imageUrl)
-        product.imageUrl = image.path
+        // fileHelper.deleteFile(product.imageUrl)
+        s3Helper.deleteS3Object(product.imageKey)
+        product.imageUrl = image.location
+        product.imageKey = image.key
       }
 
       return product.save().then(() => {
@@ -186,7 +190,8 @@ exports.deleteProduct = (req, res, next) => {
     .findByIdAndRemove(req.params.productId)
     .then(product => {
       if (!product) return next(new Error('Product not found.'))
-      fileHelper.deleteFile(product.imageUrl)
+      // fileHelper.deleteFile(product.imageUrl)
+      s3Helper.deleteS3Object(product.imageKey)
 
       return Product.deleteOne( { _id: req.params.productId, userId: req.user._id } )
     })
@@ -195,7 +200,7 @@ exports.deleteProduct = (req, res, next) => {
     }))
     .catch(err => {
       res.status(500).json({
-        message: 'Deleing product failed.'
+        message: 'Deleting product failed.'
       })
     })
 }

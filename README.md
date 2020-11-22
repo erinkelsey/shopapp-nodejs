@@ -1,6 +1,6 @@
 # Shop App
 
-An eCommerce app built with Node.js, Express, mongoDB, mongoose, and Stripe.
+An eCommerce app built with Node.js, Express, mongoDB, mongoose, Stripe, and AWS S3.
 
 Hosted example: https://shopapp-nodejs.herokuapp.com/
 
@@ -10,7 +10,7 @@ Hosted example: https://shopapp-nodejs.herokuapp.com/
 - Uses connect-flash for sending messages on redirect responses.
 - Uses SendGrid, nodemailer, nodemailer-sendgrid-transport for sending emails.
 - Uses express-validator for server-side validation
-- Uses multer for handling file uploads
+- Uses multer, multer-s3, and aws-sdk for handling file uploads
 - Uses pdfkit for creating PDF invoices for orders
 - Uses Stripe for payments
 
@@ -36,6 +36,31 @@ Hosted example: https://shopapp-nodejs.herokuapp.com/
 - Go to Developers -> API Keys to get your test API Key
 - Copy your public and private keys, and add to the .env file, as described below
 
+### AWS S3
+
+- Create an S3 bucket that allows public files
+- Add your AWS credentials, and bucket settings to the .env file, as described below
+
+NOTE: The AWS SDK will automatically get your credentials from the environment variables, so it is unnecessary to configure them in the application.
+
+Add the following bucket policy, so that the images are publicly accessible:
+
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "PublicRead",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion"
+                ],
+                "Resource": "arn:aws:s3:::YOUR_AWS_BUCKET_NAME/*"
+            }
+        ]
+    }
+
 ### Environment Variables
 
 Create a .env file in the main directory with the following environment variables:
@@ -46,6 +71,10 @@ Create a .env file in the main directory with the following environment variable
     HOST_URL=http://localhost:3000
     STRIPE_PRIVATE_KEY=your_private_stripe_key
     STRIPE_PUBLIC_KEY=your_public_stripe_key
+    AWS_ACCESS_KEY_ID=your_aws_access_key
+    AWS_SECRET_ACCESS_KEY=your_secret_access_key
+    AWS_REGION=your_s3_bucket_region
+    AWS_BUCKET_NAME=your_s3_bucket_name
 
 ## Run
 
